@@ -1,0 +1,103 @@
+use ShopDB
+switched to db ShopDB
+db.Orders.insertMany([
+  { cus_id: "A1", amount: 400, status: "P" },
+  { cus_id: "B1", amount: 300, status: "D" },
+  { cus_id: "A1", amount: 200, status: "F" },
+  { cus_id: "C1", amount: 200, status: "F" },
+  { cus_id: "B1", amount: 700, status: "P" },
+  { cus_id: "B1", amount: 800, status: "P" }
+])
+
+
+
+use this commands one by one  after this :
+1]:
+var mapFunction1 = function() {
+  if (this.status === "P") {
+    emit(this.cus_id, this.amount);
+  }
+};
+
+var reduceFunction1 = function(key, values) {
+  return Array.sum(values);
+};
+
+db.Orders.mapReduce(
+  mapFunction1,
+  reduceFunction1,
+  { out: "sum_by_customer_pending" }
+);
+
+print("=== Sum of amount (Pending Orders) ===");
+db.sum_by_customer_pending.find().pretty();
+
+2]:
+var mapFunction2 = function() {
+  emit(this.cus_id, { sum: this.amount, count: 1 });
+};
+
+var reduceFunction2 = function(key, values) {
+  var result = { sum: 0, count: 0 };
+  values.forEach(function(v) {
+    result.sum += v.sum;
+    result.count += v.count;
+  });
+  return result;
+};
+
+var finalizeFunction2 = function(key, reducedVal) {
+  reducedVal.avg = reducedVal.sum / reducedVal.count;
+  return reducedVal;
+};
+
+db.Orders.mapReduce(
+  mapFunction2,
+  reduceFunction2,
+  {
+    out: "avg_by_customer",
+    finalize: finalizeFunction2
+  }
+);
+
+print("=== Average amount per customer ===");
+db.avg_by_customer.find().pretty();
+
+3]:
+var mapFunction3 = function() {
+  emit(this.cus_id, this.amount);
+};
+
+var reduceFunction3 = function(key, values) {
+  return Math.min.apply(null, values);
+};
+
+db.Orders.mapReduce(
+  mapFunction3,
+  reduceFunction3,
+  { out: "min_amount_by_customer" }
+);
+
+print("=== Minimum amount per customer ===");
+db.min_amount_by_customer.find().pretty();
+
+4]:
+var mapFunction4 = function() {
+  if (this.status === "F") {
+    emit(this.cus_id, this.amount);
+  }
+};
+
+var reduceFunction4 = function(key, values) {
+  return Math.max.apply(null, values);
+};
+
+db.Orders.mapReduce(
+  mapFunction4,
+  reduceFunction4,
+  { out: "max_failed_by_customer" }
+);
+
+print("=== Maximum Failed Amount per Customer ===");
+db.max_failed_by_customer.find().pretty();
+

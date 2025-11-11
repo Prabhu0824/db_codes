@@ -1,0 +1,51 @@
+use LibraryDB
+switched to db LibraryDB
+db.createCollection("books")
+
+db.books.insertMany([
+  { TITLE: "mongodb", DESCRIPTION: "Intro to MongoDB", BY: "john", URL: "http://mongo.com/1", TAGS: ["database", "nosql"], LIKES: 120 },
+  { TITLE: "nosql overview", DESCRIPTION: "NoSQL database overview", BY: "david", URL: "http://mongo.com/2", TAGS: ["nosql"], LIKES: 80 },
+  { TITLE: "data modeling", DESCRIPTION: "Data modeling concepts", BY: "john", URL: "http://mongo.com/3", TAGS: ["modeling"], LIKES: 15 },
+  { TITLE: "sql basics", DESCRIPTION: "Intro to SQL", BY: "alex", URL: "http://mongo.com/4", TAGS: ["sql"], LIKES: 5 },
+  { TITLE: "aggregation", DESCRIPTION: "MongoDB Aggregation", BY: "mary", URL: "http://mongo.com/5", TAGS: ["aggregation"], LIKES: 55 }
+])
+
+db.books.insertOne({
+  TITLE: "mongodb advanced",
+  DESCRIPTION: "Advanced topics in MongoDB",
+  BY: "john",
+  URL: "http://mongo.com/6",
+  TAGS: ["mongodb", "advanced"],
+  LIKES: 200,
+  USERNAME: "priya",
+  COMMENTS: "Great book for developers"
+})
+
+
+
+use this commands one by one  after this :
+db.books.find({ TITLE: "mongodb" })
+
+db.books.find({ $or: [{ BY: "john" }, { TITLE: "mongodb" }] })
+
+db.books.find({ $and: [{ TITLE: "mongodb" }, { BY: "john" }] })
+
+db.books.find({ LIKES: { $gt: 10 } })
+
+db.books.find({
+  LIKES: { $gt: 100 },
+  $or: [{ TITLE: "mongodb" }, { BY: "john" }]
+})
+
+db.books.updateOne(
+  { TITLE: "mongodb" },
+  { $set: { TITLE: "mongodb overview" } }
+)
+
+db.books.deleteOne({ TITLE: "nosql overview" })
+
+db.books.find({ BY: "john" }).limit(2)
+
+db.books.find({ BY: "john" }).skip(1).limit(1)
+
+db.books.find().sort({ TITLE: 1 })

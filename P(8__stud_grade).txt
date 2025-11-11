@@ -1,0 +1,54 @@
+CREATE TABLE Stud_Marks (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(50),
+    Total_Marks NUMBER
+);
+
+CREATE TABLE Result (
+    Roll NUMBER,
+    Name VARCHAR2(50),
+    Class VARCHAR2(30)
+);
+
+INSERT INTO Stud_Marks VALUES (1, 'Asha Patil', 1450);
+INSERT INTO Stud_Marks VALUES (2, 'Rahul Deshmukh', 950);
+INSERT INTO Stud_Marks VALUES (3, 'Priya Kulkarni', 860);
+INSERT INTO Stud_Marks VALUES (4, 'Vikram Joshi', 780);
+COMMIT;
+
+CREATE OR REPLACE PROCEDURE proc_Grade IS
+    v_roll Stud_Marks.Roll%TYPE;
+    v_name Stud_Marks.Name%TYPE;
+    v_marks Stud_Marks.Total_Marks%TYPE;
+    v_class VARCHAR2(30);
+    CURSOR c1 IS
+        SELECT Roll, Name, Total_Marks FROM Stud_Marks;
+BEGIN
+    FOR i IN c1 LOOP
+        v_roll := i.Roll;
+        v_name := i.Name;
+        v_marks := i.Total_Marks;
+        IF v_marks BETWEEN 990 AND 1500 THEN
+            v_class := 'Distinction';
+        ELSIF v_marks BETWEEN 900 AND 989 THEN
+            v_class := 'First Class';
+        ELSIF v_marks BETWEEN 825 AND 899 THEN
+            v_class := 'Higher Second Class';
+        ELSE
+            v_class := 'Fail';
+        END IF;
+        INSERT INTO Result VALUES (v_roll, v_name, v_class);
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE('Results inserted successfully.');
+END;
+/
+
+SET SERVEROUTPUT ON;
+
+BEGIN
+    DELETE FROM Result;
+    proc_Grade;
+END;
+/
+
+SELECT * FROM Result;

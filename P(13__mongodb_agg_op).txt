@@ -1,0 +1,51 @@
+use LibraryDB
+
+db.createCollection("Books")
+
+db.Books.insertMany([
+  { TITLE: "mongodb basics", DESCRIPTION: "Introduction to MongoDB", BY: "john", URL: "http://mongo.com/1", TAGS: ["database"], LIKES: 150 },
+  { TITLE: "nosql guide", DESCRIPTION: "NoSQL Overview", BY: "david", URL: "http://mongo.com/2", TAGS: ["nosql"], LIKES: 90 },
+  { TITLE: "mongodb advanced", DESCRIPTION: "Advanced MongoDB Concepts", BY: "john", URL: "http://mongo.com/3", TAGS: ["database", "advanced"], LIKES: 250 },
+  { TITLE: "data analysis", DESCRIPTION: "Working with Aggregations", BY: "mary", URL: "http://mongo.com/4", TAGS: ["data"], LIKES: 70 },
+  { TITLE: "mongodb deep dive", DESCRIPTION: "Deep Dive into MongoDB", BY: "john", URL: "http://mongo.com/5", TAGS: ["mongodb"], LIKES: 50 }
+])
+
+
+
+
+use this commands one by one  after this :
+db.Books.countDocuments({ BY: "john" })
+
+db.Books.aggregate([
+  { $match: { BY: "john" } },
+  { $group: {
+      _id: "$BY",
+      minLikes: { $min: "$LIKES" },
+      maxLikes: { $max: "$LIKES" }
+    }
+  }
+])
+
+db.Books.aggregate([
+  { $match: { BY: "john" } },
+  { $group: {
+      _id: "$BY",
+      avgLikes: { $avg: "$LIKES" }
+    }
+  }
+])
+
+db.Books.aggregate([
+  { $match: { BY: "john" } },
+  { $sort: { TITLE: 1 } },
+  { $group: {
+      _id: "$BY",
+      firstBook: { $first: "$TITLE" },
+      lastBook: { $last: "$TITLE" }
+    }
+  }
+])
+
+db.Books.createIndex({ BY: 1 })
+
+db.Books.find({ BY: "john" }).explain("executionStats")

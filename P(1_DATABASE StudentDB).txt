@@ -1,0 +1,46 @@
+CREATE DATABASE StudentDB;
+USE StudentDB;
+
+CREATE TABLE Department (
+    dept_id INT PRIMARY KEY,
+    DeptName VARCHAR(100) UNIQUE NOT NULL,
+    HOD_Name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Student (
+    RegID INT PRIMARY KEY,
+    rollno INT UNIQUE NOT NULL,
+    fname VARCHAR(50) NOT NULL,
+    mname VARCHAR(50),
+    lname VARCHAR(50) NOT NULL,
+    gender CHAR(1) CHECK (gender IN ('M', 'F')),
+    dept_id INT NOT NULL,
+    FOREIGN KEY (dept_id) REFERENCES Department(dept_id)
+);
+
+CREATE TABLE Course (
+    CID INT PRIMARY KEY,
+    course_name VARCHAR(60) NOT NULL,
+    credit INT DEFAULT 4 CHECK (credit > 0)
+);
+
+CREATE TABLE Enrollment (
+    enid INT PRIMARY KEY,
+    RegID INT NOT NULL,
+    DeptID INT NOT NULL,
+    FOREIGN KEY (RegID) REFERENCES Student(RegID),
+    FOREIGN KEY (DeptID) REFERENCES Department(dept_id)
+);
+
+ALTER TABLE Student
+ADD email VARCHAR(100);
+
+ALTER TABLE Course
+MODIFY course_name VARCHAR(120);
+
+RENAME TABLE Enrollment TO StudentEnrollment;
+
+ALTER TABLE Course
+CHANGE COLUMN CID course_no INT;
+
+CREATE INDEX idx_deptid ON Student(dept_id);

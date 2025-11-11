@@ -1,0 +1,119 @@
+CREATE DATABASE SalesDB_NoJoin;
+USE SalesDB_NoJoin;
+
+CREATE TABLE Customer (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    city VARCHAR(100),
+    email VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE Product (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    price DECIMAL(10,2) CHECK (price >= 0)
+);
+
+CREATE TABLE Sale (
+    sale_id INT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT CHECK (quantity > 0),
+    sale_date DATE DEFAULT (CURRENT_DATE),
+    total_amount DECIMAL(12,2) CHECK (total_amount >= 0),
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (product_id) REFERENCES Product(product_id)
+);
+
+INSERT INTO Customer VALUES
+(1, 'Ravi Sharma', 'Pune', 'ravi@shop.test'),
+(2, 'Neha Patil', 'Mumbai', 'neha@shop.test'),
+(3, 'Amit Verma', 'Delhi', 'amit@shop.test'),
+(4, 'Sneha Joshi', 'Pune', 'sneha@shop.test');
+
+INSERT INTO Product VALUES
+(101, 'Laptop', 'Electronics', 55000.00),
+(102, 'Mobile', 'Electronics', 25000.00),
+(103, 'Chair', 'Furniture', 3000.00),
+(104, 'Table', 'Furniture', 7000.00),
+(105, 'Headphones', 'Electronics', 2000.00);
+
+INSERT INTO Sale VALUES
+(1, 1, 101, 1, '2025-10-01', 55000.00),
+(2, 1, 102, 2, '2025-10-05', 50000.00),
+(3, 2, 103, 3, '2025-10-10', 9000.00),
+(4, 3, 104, 1, '2025-10-12', 7000.00),
+(5, 4, 105, 4, '2025-10-15', 8000.00),
+(6, 3, 102, 1, '2025-10-20', 25000.00);
+
+SELECT customer_name,
+       (SELECT SUM(total_amount)
+        FROM Sale
+        WHERE Sale.customer_id = Customer.customer_id) AS total_sales
+FROM Customer;
+
+SELECT product_name,
+       (SELECT SUM(quantity)
+        FROM Sale
+        WHERE Sale.product_id = Product.product_id) AS total_quantity_sold
+FROM Product;
+
+SELECT MAX(price) AS highest_price, MIN(price) AS lowest_price FROM Product;
+
+SELECT city,
+       (SELECT AVG(total_amount)
+        FROM Sale
+        WHERE customer_id IN (
+            SELECT customer_id FROM Customer c WHERE c.city = Customer.city
+       )) AS avg_sales_per_city
+FROM Customer
+GROUP BY city;
+
+SELECT category,
+       (SELECT SUM(total_amount)
+        FROM Sale
+        WHERE product_id IN (
+            SELECT product_id FROM Product p WHERE p.category = Product.category
+       )) AS total_sales,
+       (SELECT COUNT(sale_id)
+        FROM Sale
+        WHERE product_id IN (
+            SELECT product_id FROM Product p WHERE p.category = Product.category
+       )) AS transaction_count
+FROM Product
+GROUP BY category;
+
+SELECT customer_name,
+       (SELECT SUM(total_amount)
+        FROM Sale
+        WHERE Sale.customer_id = Customer.customer_id) AS total_purchase
+FROM Customer
+WHERE (SELECT SUM(total_amount)
+       FROM Sale
+       WHERE Sale.customer_id = Customer.customer_id) >
+      (SELECT AVG(total_amount) FROM Sale);
+
+CREATE TEMPORARY TABLE CustomerSummary AS
+SELECT customer_id,
+       (SELECT SUM(total_amount)
+        FROM Sale
+        WHERE Sale.customer_id = Customer.customer_id) AS total_sales
+FROM Customer;
+
+SELECT * FROM CustomerSummary WHERE total_sales > 10000;
+
+SELECT product_name,
+       (SELECT COUNT(sale_id)
+        FROM Sale
+        WHERE Sale.product_id = Product.product_id) AS times_sold
+FROM Product;
+
+SELECT customer_name
+FROM Customer
+WHERE customer_id IN (
+    SELECT customer_id FROM Sale
+    WHERE product_id IN (
+        SELECT product_id FROM Product WHERE category = 'Electronics'
+    )
+);
